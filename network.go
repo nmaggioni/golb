@@ -1,0 +1,68 @@
+package golb
+
+import (
+	"errors"
+	"fmt"
+	"github.com/satori/go.uuid"
+	"io"
+	"net"
+	"os"
+	"time"
+)
+
+func Listen() error {
+	listener, err := net.Listen("tcp", config.IP+":"+config.Port)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Failed to setup listener: %v", err))
+	}
+
+	host := config.IP
+	if host == "" {
+		host = "127.0.0.1"
+	}
+	fmt.Printf("Listening on %s:%s...\n", host, config.Port)
+
+	for {
+		conn, err := listener.Accept()
+		id := uuid.NewV1().String()
+		if err != nil {
+			fmt.Errorf("Failed to accept listener: %v", err)
+		}
+
+		if config.Verbose {
+			fmt.Printf("%s - Accepted connection from %v\n", id, conn.RemoteAddr())
+		}
+		go forwardWithStrategy(id, conn)
+	}
+}
+
+func forwardWithStrategy(id string, conn net.Conn) {
+	switch config.Strategy {
+	case "round-robin":
+		roundRobin(id, conn)
+	}
+}
+
+func forward(id string, conn net.Conn, upstream Upstream) error {
+	client, err := net.DialTimeout("tcp", upstream.IP+":"+upstream.Port, time.Duration(config.Timeout)*time.Second)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s - Forwarding to %s (%s:%s) failed: %v\n", id, upstream.Name, upstream.IP, upstream.Port, err)
+		return errors.New("")
+	}
+
+	if config.Verbose {
+		fmt.Printf("%s - Forwarding to %s (%s:%s)\n", id, upstream.Name, upstream.IP, upstream.Port)
+	}
+	go func() {
+		defer client.Close()
+		defer conn.Close()
+		io.Copy(client, conn)
+	}()
+	go func() {
+		defer client.Close()
+		defer conn.Close()
+		io.Copy(conn, client)
+	}()
+
+	return nil
+}

@@ -1,0 +1,15 @@
+ip = ""
+port = "1337"
+strategy = "round-robin"
+timeout = 1
+verbose = false
+
+[[upstream]]
+name = "srv1"
+ip = "10.0.0.1"
+port = "8080"
+
+[[upstream]]
+name = "srv2"
+ip = "10.0.0.2"
+port = "8080"
