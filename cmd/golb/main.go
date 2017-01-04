@@ -31,5 +31,6 @@ func main() {
 	}
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	golb.Listen()
+	err = golb.Listen()
+	kingpin.FatalIfError(err, "")
 }
