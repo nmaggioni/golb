@@ -2,9 +2,10 @@ package golb
 
 import (
 	"errors"
-	"github.com/BurntSushi/toml"
 	"os"
 	"path/filepath"
+
+	"github.com/BurntSushi/toml"
 )
 
 type configTOML struct {

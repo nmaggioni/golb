@@ -3,11 +3,13 @@ package golb
 import (
 	"errors"
 	"fmt"
-	"github.com/satori/go.uuid"
 	"io"
 	"net"
 	"os"
+	"strings"
 	"time"
+
+	"github.com/satori/go.uuid"
 )
 
 func Listen() error {

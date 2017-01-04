@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
+	"runtime"
+
 	"github.com/nmaggioni/golb"
 	"gopkg.in/alecthomas/kingpin.v2"
-	"runtime"
 )
 
 var (
