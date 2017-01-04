@@ -5,12 +5,12 @@ import (
 	"sync"
 )
 
-type rr_index struct {
+type rrIndex struct {
 	sync.Mutex
 	i int
 }
 
-var index rr_index
+var index rrIndex
 
 func incrementRRIndex() {
 	index.Lock()

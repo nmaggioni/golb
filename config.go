@@ -13,10 +13,10 @@ type configTOML struct {
 	Strategy  string     `toml:"strategy"`
 	Timeout   int        `toml:"timeout"`
 	Verbose   bool       `toml:"verbose"`
-	Upstreams []Upstream `toml:"upstream"`
+	Upstreams []upstream `toml:"upstream"`
 }
 
-type Upstream struct {
+type upstream struct {
 	Name string `toml:"name"`
 	IP   string `toml:"ip"`
 	Port string `toml:"port"`
@@ -40,9 +40,8 @@ func FindConfigPath(path string) (string, error) {
 		if err == nil {
 			if !stats.IsDir() {
 				return path, nil
-			} else {
-				return "", errors.New("the given path is not a valid file")
 			}
+			return "", errors.New("the given path is not a valid file")
 		}
 	}
 

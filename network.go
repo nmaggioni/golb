@@ -13,7 +13,7 @@ import (
 func Listen() error {
 	listener, err := net.Listen("tcp", config.IP+":"+config.Port)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Failed to setup listener: %v", err))
+		return fmt.Errorf("Failed to setup listener: %v", err)
 	}
 
 	host := config.IP
@@ -43,15 +43,15 @@ func forwardWithStrategy(id string, conn net.Conn) {
 	}
 }
 
-func forward(id string, conn net.Conn, upstream Upstream) error {
-	client, err := net.DialTimeout("tcp", upstream.IP+":"+upstream.Port, time.Duration(config.Timeout)*time.Second)
+func forward(id string, conn net.Conn, upstr upstream) error {
+	client, err := net.DialTimeout("tcp", upstr.IP+":"+upstr.Port, time.Duration(config.Timeout)*time.Second)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s - Forwarding to %s (%s:%s) failed: %v\n", id, upstream.Name, upstream.IP, upstream.Port, err)
+		fmt.Fprintf(os.Stderr, "%s - Forwarding to %s (%s:%s) failed: %v\n", id, upstr.Name, upstr.IP, upstr.Port, err)
 		return errors.New("")
 	}
 
 	if config.Verbose {
-		fmt.Printf("%s - Forwarding to %s (%s:%s)\n", id, upstream.Name, upstream.IP, upstream.Port)
+		fmt.Printf("%s - Forwarding to %s (%s:%s)\n", id, upstr.Name, upstr.IP, upstr.Port)
 	}
 	go func() {
 		defer client.Close()
