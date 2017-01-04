@@ -3,6 +3,7 @@ port = "1337"
 strategy = "round-robin"
 timeout = 1
 verbose = false
+maxCycles = 3
 
 [[upstream]]
 name = "srv1"

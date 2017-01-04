@@ -39,7 +39,7 @@ func Listen() error {
 func forwardWithStrategy(id string, conn net.Conn) {
 	switch config.Strategy {
 	case "round-robin":
-		roundRobin(id, conn)
+		roundRobin(id, conn, 0)
 	}
 }
 

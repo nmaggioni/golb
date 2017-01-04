@@ -14,6 +14,7 @@ type configTOML struct {
 	Timeout   int        `toml:"timeout"`
 	Verbose   bool       `toml:"verbose"`
 	Upstreams []upstream `toml:"upstream"`
+	MaxCycles  int        `toml:"maxCycles"`
 }
 
 type upstream struct {
