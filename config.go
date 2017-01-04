@@ -25,6 +25,7 @@ type upstream struct {
 }
 
 var config configTOML
+var confPath string
 
 func ParseConfig(path string) error {
 	if _, err := toml.DecodeFile(path, &config); err != nil {
@@ -32,6 +33,7 @@ func ParseConfig(path string) error {
 			return err
 		}
 	}
+	confPath = path
 	return nil
 }
 

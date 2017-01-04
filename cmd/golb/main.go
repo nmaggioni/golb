@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"runtime"
 
 	"github.com/nmaggioni/golb"
@@ -27,7 +26,6 @@ func main() {
 	}
 
 	if *verbose {
-		fmt.Printf("Loaded configuration from file: %s\n", confPath)
 		golb.SetVerbose(true)
 	}
 

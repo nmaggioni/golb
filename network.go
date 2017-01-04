@@ -13,6 +13,10 @@ import (
 )
 
 func Listen() error {
+	if config.Verbose {
+		fmt.Printf("Loaded configuration from file: %s\n", confPath)
+	}
+
 	listener, err := net.Listen("tcp", config.IP+":"+config.Port)
 	if err != nil {
 		return fmt.Errorf("Failed to setup listener: %v", err)
