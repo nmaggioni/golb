@@ -26,10 +26,12 @@ func Listen() error {
 		host = "127.0.0.1"
 	}
 
-	if config.Verbose {
-		fmt.Println("LOAD - - Kickstarting GC...")
+	if config.Sticky {
+		if config.Verbose {
+			fmt.Println("LOAD - - Kickstarting GC...")
+		}
+		go staleSessionsCleaner()
 	}
-	go staleSessionsCleaner()
 
 	fmt.Printf("LOAD - - Listening on %s:%s...\n", host, config.Port)
 
