@@ -57,15 +57,22 @@ func Listen() error {
 					}
 				}
 			}
-			forwardWithStrategy(id, conn)
+			forwardWithStrategy(id, conn, 0)
 		}()
 	}
 }
 
-func forwardWithStrategy(id string, conn net.Conn) {
-	switch config.Strategy {
-	case "round-robin":
-		roundRobin(id, conn, 0)
+func forwardWithStrategy(id string, conn net.Conn, tries int) {
+	if tries < len(config.Upstreams)*config.MaxCycles {
+		switch config.Strategy {
+		case "round-robin":
+			roundRobin(id, conn, tries)
+		}
+	} else {
+		if config.Verbose {
+			fmt.Printf("WARN - %s - Max retry cycles reached, aborting\n", id)
+		}
+		conn.Close()
 	}
 }
 

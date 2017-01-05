@@ -1,7 +1,6 @@
 package golb
 
 import (
-	"fmt"
 	"net"
 	"sync"
 )
@@ -25,16 +24,9 @@ func incrementRRIndex() {
 }
 
 func roundRobin(id string, conn net.Conn, tries int) {
-	if tries < len(config.Upstreams)*config.MaxCycles {
-		err := forward(id, conn, config.Upstreams[index.i])
-		incrementRRIndex()
-		if err != nil {
-			roundRobin(id, conn, tries+1)
-		}
-	} else {
-		if config.Verbose {
-			fmt.Printf("WARN - %s - Max retry cycles reached, aborting\n", id)
-		}
-		conn.Close()
+	err := forward(id, conn, config.Upstreams[index.i])
+	incrementRRIndex()
+	if err != nil {
+		forwardWithStrategy(id, conn, tries+1)
 	}
 }
