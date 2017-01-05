@@ -97,15 +97,17 @@ func forward(id string, conn net.Conn, upstr upstream) error {
 		io.Copy(conn, client)
 	}()
 
-	remoteIP := stripPortFromAddr(conn.RemoteAddr().String())
-	_, isCached := getSession(remoteIP)
-	updateSession(remoteIP, sessionDetails{upstr, time.Now()})
-	if config.Verbose {
-		keyword := "Sticked"
-		if isCached {
-			keyword = "Resticked"
+	if config.Sticky {
+		remoteIP := stripPortFromAddr(conn.RemoteAddr().String())
+		_, isCached := getSession(remoteIP)
+		updateSession(remoteIP, sessionDetails{upstr, time.Now()})
+		if config.Verbose {
+			keyword := "Sticked"
+			if isCached {
+				keyword = "Resticked"
+			}
+			fmt.Printf("INFO - %s - %s %s to %s\n", id, keyword, remoteIP, upstr.Name)
 		}
-		fmt.Printf("INFO - %s - %s %s to %s\n", id, keyword, remoteIP, upstr.Name)
 	}
 
 	return nil
