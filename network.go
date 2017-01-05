@@ -36,8 +36,9 @@ func Listen() error {
 	for {
 		conn, err := listener.Accept()
 		id := uuid.NewV1().String()
-		if err != nil {
+		if err != nil || conn == nil {
 			fmt.Fprintf(os.Stderr, "ERR  - - Failed to accept listener: %v\n", err)
+			continue
 		}
 
 		if config.Verbose {
