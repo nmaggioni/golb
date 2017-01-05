@@ -1,14 +1,17 @@
-ip = ""
-port = "1337"
-strategy = "round-robin"
-timeout = 1
-verbose = false
-maxCycles = 3
+ip = ""                     # The IP to listen on. Leave blank for localhost.
+port = "1337"               # The port to listen on.
+verbose = true              # Do you feel like your logs are too shallow?
+
+strategy = "round-robin"    # The strategy to route incoming connections with.
+sticky = true               # Should the same IPs be forwarded to the same upstreams?
+stickyness = 60             # For how long (in seconds) should an IP be considered sticky?
+timeout = 2                 # How long (in seconds) should dialing the upstream take before skipping to the next one?
+maxCycles = 3               # How many times should the upstreams list be cycled before closing the incoming connection?
 
 [[upstream]]
-name = "srv1"
-ip = "10.0.0.1"
-port = "8080"
+name = "srv1"               # Name of the upstream, used in log entries.
+ip = "10.0.0.1"             # IP to forward to.
+port = "9000"               # Port to forward to.
 
 [[upstream]]
 name = "srv2"

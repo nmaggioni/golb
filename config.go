@@ -9,13 +9,15 @@ import (
 )
 
 type configTOML struct {
-	IP        string     `toml:"ip"`
-	Port      string     `toml:"port"`
-	Strategy  string     `toml:"strategy"`
-	Timeout   int        `toml:"timeout"`
-	Verbose   bool       `toml:"verbose"`
-	Upstreams []upstream `toml:"upstream"`
+	IP         string     `toml:"ip"`
+	Port       string     `toml:"port"`
+	Verbose    bool       `toml:"verbose"`
+	Strategy   string     `toml:"strategy"`
+	Sticky     bool       `toml:"sticky"`
+	Stickiness int        `toml:"stickyness"`
+	Timeout    int        `toml:"timeout"`
 	MaxCycles  int        `toml:"maxCycles"`
+	Upstreams  []upstream `toml:"upstream"`
 }
 
 type upstream struct {

@@ -33,7 +33,7 @@ func roundRobin(id string, conn net.Conn, tries int) {
 		}
 	} else {
 		if config.Verbose {
-			fmt.Printf("%s - Max retry cycles reached, aborting\n", id)
+			fmt.Printf("WARN - %s - Max retry cycles reached, aborting\n", id)
 		}
 		conn.Close()
 	}

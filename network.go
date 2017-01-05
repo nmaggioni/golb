@@ -14,31 +14,50 @@ import (
 
 func Listen() error {
 	if config.Verbose {
-		fmt.Printf("Loaded configuration from file: %s\n", confPath)
+		fmt.Printf("LOAD - - Loaded configuration from file: %s\n", confPath)
 	}
 
 	listener, err := net.Listen("tcp", config.IP+":"+config.Port)
 	if err != nil {
 		return fmt.Errorf("Failed to setup listener: %v", err)
 	}
-
 	host := config.IP
 	if host == "" {
 		host = "127.0.0.1"
 	}
-	fmt.Printf("Listening on %s:%s...\n", host, config.Port)
+
+	if config.Verbose {
+		fmt.Println("LOAD - - Kickstarting GC...")
+	}
+	go staleSessionsCleaner()
+
+	fmt.Printf("LOAD - - Listening on %s:%s...\n", host, config.Port)
 
 	for {
 		conn, err := listener.Accept()
 		id := uuid.NewV1().String()
 		if err != nil {
-			fmt.Errorf("Failed to accept listener: %v", err)
+			fmt.Fprintf(os.Stderr, "ERR  - - Failed to accept listener: %v\n", err)
 		}
 
 		if config.Verbose {
-			fmt.Printf("%s - Accepted connection from %v\n", id, conn.RemoteAddr())
+			fmt.Printf("INFO - %s - Accepted connection from %s\n", id, conn.RemoteAddr().String())
 		}
-		go forwardWithStrategy(id, conn)
+
+		go func() {
+			if config.Sticky {
+				if session, isCached := getSession(stripPortFromAddr(conn.RemoteAddr().String())); isCached {
+					if config.Verbose {
+						fmt.Printf("INFO - %s - Client is sticked to %s\n", id, session.Upstream.Name)
+					}
+					err := forward(id, conn, session.Upstream)
+					if err == nil {
+						return
+					}
+				}
+			}
+			forwardWithStrategy(id, conn)
+		}()
 	}
 }
 
@@ -52,12 +71,12 @@ func forwardWithStrategy(id string, conn net.Conn) {
 func forward(id string, conn net.Conn, upstr upstream) error {
 	client, err := net.DialTimeout("tcp", upstr.IP+":"+upstr.Port, time.Duration(config.Timeout)*time.Second)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s - Forwarding to %s (%s:%s) failed: %v\n", id, upstr.Name, upstr.IP, upstr.Port, err)
+		fmt.Fprintf(os.Stderr, "WARN - %s - Forwarding to %s (%s:%s) failed: %v\n", id, upstr.Name, upstr.IP, upstr.Port, err)
 		return errors.New("")
 	}
 
 	if config.Verbose {
-		fmt.Printf("%s - Forwarding to %s (%s:%s)\n", id, upstr.Name, upstr.IP, upstr.Port)
+		fmt.Printf("INFO - %s - Forwarding to %s (%s:%s)\n", id, upstr.Name, upstr.IP, upstr.Port)
 	}
 	go func() {
 		defer client.Close()
@@ -70,5 +89,24 @@ func forward(id string, conn net.Conn, upstr upstream) error {
 		io.Copy(conn, client)
 	}()
 
+	remoteIP := stripPortFromAddr(conn.RemoteAddr().String())
+	_, isCached := getSession(remoteIP)
+	updateSession(remoteIP, sessionDetails{upstr, time.Now()})
+	if config.Verbose {
+		keyword := "Sticked"
+		if isCached {
+			keyword = "Resticked"
+		}
+		fmt.Printf("INFO - %s - %s %s to %s\n", id, keyword, remoteIP, upstr.Name)
+	}
+
 	return nil
+}
+
+func stripPortFromAddr(remoteAddr string) string {
+	i := strings.LastIndex(remoteAddr, ":")
+	if i != -1 {
+		remoteAddr = remoteAddr[:i]
+	}
+	return remoteAddr
 }
