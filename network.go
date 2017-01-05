@@ -65,6 +65,8 @@ func Listen() error {
 func forwardWithStrategy(id string, conn net.Conn, tries int) {
 	if tries < len(config.Upstreams)*config.MaxCycles {
 		switch config.Strategy {
+		case "random":
+			random(id, conn, tries)
 		case "round-robin":
 			roundRobin(id, conn, tries)
 		}
