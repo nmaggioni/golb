@@ -12,8 +12,10 @@ maxCycles = 3               # How many times should the upstreams list be cycled
 name = "srv1"               # Name of the upstream, used in log entries.
 ip = "10.0.0.1"             # IP to forward to.
 port = "9000"               # Port to forward to.
+weight = 1                  # Weight for the `weighted-round-robin` algorithm.
 
 [[upstream]]
 name = "srv2"
-ip = "10.0.0.2"
+ip = "127.0.0.1"
 port = "8080"
+weight = 3

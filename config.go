@@ -21,9 +21,10 @@ type configTOML struct {
 }
 
 type upstream struct {
-	Name string `toml:"name"`
-	IP   string `toml:"ip"`
-	Port string `toml:"port"`
+	Name   string `toml:"name"`
+	IP     string `toml:"ip"`
+	Port   string `toml:"port"`
+	Weight int    `toml:"weight"`
 }
 
 var config configTOML
@@ -36,6 +37,16 @@ func ParseConfig(path string) error {
 		}
 	}
 	confPath = path
+
+	if config.Strategy == "weighted-round-robin" {
+		var weightedUpstreams []upstream
+		for _, upstr := range config.Upstreams {
+			for i := 0; i < upstr.Weight; i++ {
+				weightedUpstreams = append(weightedUpstreams, upstr)
+			}
+		}
+		config.Upstreams = weightedUpstreams
+	}
 	return nil
 }
 

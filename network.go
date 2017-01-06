@@ -69,7 +69,7 @@ func forwardWithStrategy(id string, conn net.Conn, tries int) {
 		switch config.Strategy {
 		case "random":
 			random(id, conn, tries)
-		case "round-robin":
+		case "round-robin", "weighted-round-robin":
 			roundRobin(id, conn, tries)
 		}
 	} else {
