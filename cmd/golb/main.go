@@ -29,6 +29,8 @@ func main() {
 		golb.SetVerbose(true)
 	}
 
+	golb.ConfigLoaded()
+
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	err = golb.Listen()
 	kingpin.FatalIfError(err, "")

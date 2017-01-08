@@ -1,9 +1,10 @@
 package golb
 
 import (
-	"fmt"
 	"sync"
 	"time"
+
+	"github.com/Sirupsen/logrus"
 )
 
 type sessionDetails struct {
@@ -20,12 +21,15 @@ func (s sessionDetails) isStale() bool {
 
 func staleSessionsCleaner() {
 	for {
-		for IP, session := range sessions {
+		for ip, session := range sessions {
 			if session.isStale() {
 				if config.Verbose {
-					fmt.Printf("INFO - - Desticking stale %s from %s\n", IP, session.Upstream.Name)
+					logrus.WithFields(logrus.Fields{
+						"remote-address": ip,
+						"upstream-name":  session.Upstream.Name,
+					}).Info("Desticking stale client")
 				}
-				delete(sessions, IP)
+				delete(sessions, ip)
 			}
 		}
 		time.Sleep(1 * time.Second)

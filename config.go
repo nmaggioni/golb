@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"fmt"
 	"github.com/BurntSushi/toml"
+	"github.com/Sirupsen/logrus"
 )
 
 type configTOML struct {
@@ -43,7 +43,7 @@ func ParseConfig(path string) error {
 
 	if config.Sticky {
 		if config.Verbose {
-			fmt.Println("LOAD - - Kickstarting GC...")
+			logrus.Info("Kickstarting GC")
 		}
 		go staleSessionsCleaner()
 	}
@@ -59,7 +59,7 @@ func ParseConfig(path string) error {
 		config.Upstreams = weightedUpstreams
 	case "active-polling":
 		if config.Verbose {
-			fmt.Println("LOAD - - Kickstarting poller...")
+			logrus.Info("Kickstarting poller")
 		}
 		polledLoads = make(map[string]float64)
 		go func() {
@@ -107,4 +107,12 @@ func FindConfigPath(path string) (string, error) {
 
 func SetVerbose(value bool) {
 	config.Verbose = value
+}
+
+func ConfigLoaded() {
+	if config.Verbose {
+		logrus.WithFields(logrus.Fields{
+			"file": confPath,
+		}).Info("Configuration loaded")
+	}
 }

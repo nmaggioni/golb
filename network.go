@@ -5,18 +5,14 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"os"
 	"strings"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/satori/go.uuid"
 )
 
 func Listen() error {
-	if config.Verbose {
-		fmt.Printf("LOAD - - Loaded configuration from file: %s\n", confPath)
-	}
-
 	listener, err := net.Listen("tcp", config.IP+":"+config.Port)
 	if err != nil {
 		return fmt.Errorf("Failed to setup listener: %v", err)
@@ -26,25 +22,36 @@ func Listen() error {
 		host = "127.0.0.1"
 	}
 
-	fmt.Printf("LOAD - - Listening on %s:%s...\n", host, config.Port)
+	logrus.WithFields(logrus.Fields{
+		"host": host,
+		"port": config.Port,
+	}).Info("Listening...")
 
 	for {
 		conn, err := listener.Accept()
 		id := uuid.NewV1().String()
 		if err != nil || conn == nil {
-			fmt.Fprintf(os.Stderr, "ERR  - - Failed to accept listener: %v\n", err)
+			logrus.WithFields(logrus.Fields{
+				"err": err,
+			}).Warn("Failed to accept listener")
 			continue
 		}
 
 		if config.Verbose {
-			fmt.Printf("INFO - %s - Accepted connection from %s\n", id, conn.RemoteAddr().String())
+			logrus.WithFields(logrus.Fields{
+				"id":             id,
+				"remote-address": conn.RemoteAddr().String(),
+			}).Info("Accepted connection")
 		}
 
 		go func() {
 			if config.Sticky {
 				if session, isCached := getSession(stripPortFromAddr(conn.RemoteAddr().String())); isCached {
 					if config.Verbose {
-						fmt.Printf("INFO - %s - Client is sticked to %s\n", id, session.Upstream.Name)
+						logrus.WithFields(logrus.Fields{
+							"id":            id,
+							"upstream-name": session.Upstream.Name,
+						}).Info("Client is sticked to upstream")
 					}
 					err := forward(id, conn, session.Upstream)
 					if err == nil {
@@ -69,7 +76,9 @@ func forwardWithStrategy(id string, conn net.Conn, tries int) {
 		}
 	} else {
 		if config.Verbose {
-			fmt.Printf("WARN - %s - Max retry cycles reached, aborting\n", id)
+			logrus.WithFields(logrus.Fields{
+				"id": id,
+			}).Warn("Max retry cycles reached, aborting")
 		}
 		drop(conn)
 	}
@@ -78,12 +87,19 @@ func forwardWithStrategy(id string, conn net.Conn, tries int) {
 func forward(id string, conn net.Conn, upstr upstream) error {
 	client, err := net.DialTimeout("tcp", upstr.IP+":"+upstr.Port, time.Duration(config.Timeout)*time.Second)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "WARN - %s - Forwarding to %s (%s:%s) failed: %v\n", id, upstr.Name, upstr.IP, upstr.Port, err)
+		logrus.WithFields(logrus.Fields{
+			"id":            id,
+			"err":           err,
+			"upstream-name": upstr.Name,
+		}).Warn("Forwarding failed")
 		return errors.New("")
 	}
 
 	if config.Verbose {
-		fmt.Printf("INFO - %s - Forwarding to %s (%s:%s)\n", id, upstr.Name, upstr.IP, upstr.Port)
+		logrus.WithFields(logrus.Fields{
+			"id":            id,
+			"upstream-name": upstr.Name,
+		}).Info("Forwarding succeeded")
 	}
 	go func() {
 		defer client.Close()
@@ -105,7 +121,11 @@ func forward(id string, conn net.Conn, upstr upstream) error {
 			if isCached {
 				keyword = "Resticked"
 			}
-			fmt.Printf("INFO - %s - %s %s to %s\n", id, keyword, remoteIP, upstr.Name)
+			logrus.WithFields(logrus.Fields{
+				"id":             id,
+				"remote-address": remoteIP,
+				"upstream-name":  upstr.Name,
+			}).Infof("%s client to upstream", keyword)
 		}
 	}
 
