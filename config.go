@@ -41,7 +41,15 @@ func ParseConfig(path string) error {
 	}
 	confPath = path
 
-	if config.Strategy == "weighted-round-robin" {
+	if config.Sticky {
+		if config.Verbose {
+			fmt.Println("LOAD - - Kickstarting GC...")
+		}
+		go staleSessionsCleaner()
+	}
+
+	switch config.Strategy {
+	case "weighted-round-robin":
 		var weightedUpstreams []upstream
 		for _, upstr := range config.Upstreams {
 			for i := 0; i < upstr.Weight; i++ {
