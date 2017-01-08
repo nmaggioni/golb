@@ -12,7 +12,6 @@ func random(id string, conn net.Conn, tries int) {
 	i := randSeeded.Intn(len(config.Upstreams))
 
 	err := forward(id, conn, config.Upstreams[i])
-	incrementRRIndex()
 	if err != nil {
 		forwardWithStrategy(id, conn, tries+1)
 	}
