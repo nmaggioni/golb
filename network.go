@@ -78,7 +78,7 @@ func forwardWithStrategy(id string, conn net.Conn, tries int) {
 		if config.Verbose {
 			fmt.Printf("WARN - %s - Max retry cycles reached, aborting\n", id)
 		}
-		conn.Close()
+		drop(conn)
 	}
 }
 
@@ -117,6 +117,10 @@ func forward(id string, conn net.Conn, upstr upstream) error {
 	}
 
 	return nil
+}
+
+func drop(conn net.Conn) {
+	conn.Close()
 }
 
 func stripPortFromAddr(remoteAddr string) string {
