@@ -4,7 +4,9 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"time"
 
+	"fmt"
 	"github.com/BurntSushi/toml"
 )
 
@@ -21,10 +23,11 @@ type configTOML struct {
 }
 
 type upstream struct {
-	Name   string `toml:"name"`
-	IP     string `toml:"ip"`
-	Port   string `toml:"port"`
-	Weight int    `toml:"weight"`
+	Name           string `toml:"name"`
+	IP             string `toml:"ip"`
+	Port           string `toml:"port"`
+	MonitoringPort string `toml:"monitoring-port"`
+	Weight         int    `toml:"weight"`
 }
 
 var config configTOML
@@ -46,6 +49,17 @@ func ParseConfig(path string) error {
 			}
 		}
 		config.Upstreams = weightedUpstreams
+	case "active-polling":
+		if config.Verbose {
+			fmt.Println("LOAD - - Kickstarting poller...")
+		}
+		polledLoads = make(map[string]float64)
+		go func() {
+			for {
+				pollLoads()
+				time.Sleep(3 * time.Second)
+			}
+		}()
 	}
 	return nil
 }

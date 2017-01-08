@@ -71,6 +71,8 @@ func forwardWithStrategy(id string, conn net.Conn, tries int) {
 			random(id, conn, tries)
 		case "round-robin", "weighted-round-robin":
 			roundRobin(id, conn, tries)
+		case "active-polling", "passive-polling":
+			polling(id, conn, tries)
 		}
 	} else {
 		if config.Verbose {

@@ -9,13 +9,15 @@ timeout = 2                 # How long (in seconds) should dialing the upstream 
 maxCycles = 3               # How many times should the upstreams list be cycled before closing the incoming connection?
 
 [[upstream]]
-name = "srv1"               # Name of the upstream, used in log entries.
+name = "srv1"               # Name of the upstream, used in internal routines and log entries. No duplicates!
 ip = "10.0.0.1"             # IP to forward to.
-port = "9000"               # Port to forward to.
+port = "9000"               # Port to forward traffic to.
+monitoring-port="1338"      # The port on which the `golb-monitor-passive` is listening. For `active-polling` strategy.
 weight = 1                  # Weight for the `weighted-round-robin` algorithm.
 
 [[upstream]]
 name = "srv2"
 ip = "127.0.0.1"
 port = "8080"
+monitoring-port="1338"
 weight = 3
